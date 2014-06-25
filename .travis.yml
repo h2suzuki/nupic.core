@@ -2,17 +2,14 @@ language: cpp
 
 os:
   - linux
-  - osx
 
 compiler:
-  - clang
   - gcc
 
-matrix:
-  # This excludes OSX builds from the build matrix for gcc
-  exclude:
-    - os: osx
-      compiler: gcc
+env:
+  global:
+    # COVERITY_SCAN_TOKEN
+    secure: "Q3ZZdtAKxeWw6liO/8rkqI22R5WyOAgxfjQDpOLadRxemtkTJaR+wqTy3cvYH04yNjKiuJzrzvv64+v4acmhbAZJGuwTe8WAbyKJWRFxka6Okc3bYTGyMEIuAQQIFJn8Os12PkKcru8F4Slg12X8F2YlB94Gz7hWXfLADbBstQA="
 
 notifications:
   irc:
@@ -20,20 +17,18 @@ notifications:
       - "irc.freenode.net#nupic-hackers"
   webhooks: http://issues.numenta.org:8081/travis
 
+addons:
+  coverity_scan:
+    project:
+      name: "numenta/nupic.core"
+    notification_email: matt@numenta.org
+    build_command_prepend: "mkdir -p $TRAVIS_BUILD_DIR/build/scripts; cd $TRAVIS_BUILD_DIR/build/scripts; cmake $TRAVIS_BUILD_DIR/src"
+    build_command: "cd $TRAVIS_BUILD_DIR/build/scripts; make -j3"
+    branch_pattern: "coverity"
+
 before_install:
   - "if [ $CC = 'gcc' ]; then export CXX=g++; fi"
   - "if [ $CC = 'clang' ]; then export CXX=clang++; fi"
-  - "if [ $TRAVIS_OS_NAME = 'osx' ]; then brew install cmake; fi"
-
-install:
-  - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
-  - "cd $TRAVIS_BUILD_DIR/build/scripts"
-  - "cmake $TRAVIS_BUILD_DIR/src"
 
 script:
-  - "cd $TRAVIS_BUILD_DIR/build/scripts"
-  - "make -j3"
-  # legacy binary tests
-  - "make tests_htm"
-  # (not quite everything, really)
-  - "make tests_everything"
+  - "eval $COVERITY_SCAN_BUILD"
